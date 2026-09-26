@@ -1,1 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Device Verification</title>
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main class="container">
+    <div class="card">
+
+      <div class="icon">✓</div>
+
+      <h1>Device Verification</h1>
+
+      <p id="status">
+        Checking Telegram connection...
+      </p>
+
+      <div id="consentBox" class="hidden">
+        <p class="info">
+          To verify this session, this app will send Telegram account
+          information and basic browser/device information to the server.
+        </p>
+
+        <label class="consent">
+          <input type="checkbox" id="consentCheckbox" />
+          <span>I agree to the verification.</span>
+        </label>
+
+        <button id="verifyButton" disabled>
+          Verify Device
+        </button>
+      </div>
+
+      <div id="result" class="hidden"></div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
