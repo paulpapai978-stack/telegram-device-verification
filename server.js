@@ -90,6 +90,74 @@ function getClientIp(req) {
   return req.socket.remoteAddress || "";
 }
 
+/* -------------------------
+   ADMIN AUTHENTICATION
+------------------------- */
+
+function requireAdmin(req, res, next) {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!username || !password) {
+    return res.status(500).json({
+      success: false,
+      message: "Admin credentials are not configured"
+    });
+  }
+
+  const auth = req.headers.authorization;
+
+  if (!auth || !auth.startsWith("Basic ")) {
+    res.setHeader("WWW-Authenticate", 'Basic realm="Admin"');
+
+    return res.status(401).json({
+      success: false,
+      message: "Admin authentication required"
+    });
+  }
+
+  try {
+    const decoded = Buffer.from(
+      auth.slice(6),
+      "base64"
+    ).toString("utf8");
+
+    const separator = decoded.indexOf(":");
+
+    if (separator === -1) {
+      throw new Error("Invalid credentials");
+    }
+
+    const suppliedUsername = decoded.slice(0, separator);
+    const suppliedPassword = decoded.slice(separator + 1);
+
+    if (
+      suppliedUsername !== username ||
+      suppliedPassword !== password
+    ) {
+      res.setHeader("WWW-Authenticate", 'Basic realm="Admin"');
+
+      return res.status(401).json({
+        success: false,
+        message: "Invalid admin credentials"
+      });
+    }
+
+    next();
+  } catch {
+    res.setHeader("WWW-Authenticate", 'Basic realm="Admin"');
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid admin credentials"
+    });
+  }
+}
+
+/* -------------------------
+   TELEGRAM VERIFICATION
+------------------------- */
+
 app.post("/api/verify", (req, res) => {
   try {
     const {
@@ -158,45 +226,50 @@ app.post("/api/verify", (req, res) => {
   }
 });
 
-/*
-  ADMIN API
+/* -------------------------
+   PROTECTED ADMIN API
+------------------------- */
 
-  This returns verification records for the admin dashboard.
-  We will add admin authentication before public deployment.
-*/
+app.get(
+  "/api/admin/verifications",
+  requireAdmin,
+  (req, res) => {
+    try {
+      const rows = db.prepare(`
+        SELECT
+          id,
+          telegram_id,
+          username,
+          ip,
+          user_agent,
+          language,
+          screen_width,
+          screen_height,
+          timezone,
+          created_at
+        FROM verifications
+        ORDER BY id DESC
+        LIMIT 500
+      `).all();
 
-app.get("/api/admin/verifications", (req, res) => {
-  try {
-    const rows = db.prepare(`
-      SELECT
-        id,
-        telegram_id,
-        username,
-        ip,
-        user_agent,
-        language,
-        screen_width,
-        screen_height,
-        timezone,
-        created_at
-      FROM verifications
-      ORDER BY id DESC
-      LIMIT 500
-    `).all();
+      res.json({
+        success: true,
+        verifications: rows
+      });
+    } catch (error) {
+      console.error(error);
 
-    res.json({
-      success: true,
-      verifications: rows
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Unable to load verification data"
-    });
+      res.status(500).json({
+        success: false,
+        message: "Unable to load verification data"
+      });
+    }
   }
-});
+);
+
+/* -------------------------
+   HEALTH CHECK
+------------------------- */
 
 app.get("/api/health", (req, res) => {
   res.json({
