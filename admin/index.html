@@ -1,1 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verification Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
+<body>
+
+  <main class="container">
+
+    <div class="header">
+      <h1>Verification Admin</h1>
+      <button id="refreshButton">Refresh</button>
+    </div>
+
+    <div id="status">
+      Loading...
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Telegram ID</th>
+            <th>Username</th>
+            <th>IP</th>
+            <th>Browser</th>
+            <th>Language</th>
+            <th>Screen</th>
+            <th>Timezone</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody id="verificationTable">
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
