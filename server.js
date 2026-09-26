@@ -158,6 +158,46 @@ app.post("/api/verify", (req, res) => {
   }
 });
 
+/*
+  ADMIN API
+
+  This returns verification records for the admin dashboard.
+  We will add admin authentication before public deployment.
+*/
+
+app.get("/api/admin/verifications", (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        id,
+        telegram_id,
+        username,
+        ip,
+        user_agent,
+        language,
+        screen_width,
+        screen_height,
+        timezone,
+        created_at
+      FROM verifications
+      ORDER BY id DESC
+      LIMIT 500
+    `).all();
+
+    res.json({
+      success: true,
+      verifications: rows
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to load verification data"
+    });
+  }
+});
+
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok"
